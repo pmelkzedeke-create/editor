@@ -1,0 +1,6 @@
+{
+  "name": "OTTO — Editor de Vídeo & Motion Graphics",
+  "description": "Editor profissional de vídeo, motion graphics, curvas Bézier, timeline multipista e efeitos visuais Sapphire.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
