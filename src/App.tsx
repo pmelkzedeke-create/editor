@@ -944,13 +944,14 @@ export function App() {
           targetTrack = newTrack;
         }
 
+        const playhead = playheadRef.current;
         const onTrack = prev.clips.filter((c) => c.trackId === targetTrack!.id);
         const blocking = onTrack.find(
-          (c) => currentTime >= c.startTime && currentTime < c.startTime + c.duration - 0.05
+          (c) => playhead >= c.startTime && playhead < c.startTime + c.duration - 0.05
         );
         const startAt = blocking
           ? Math.max(...onTrack.map((c) => c.startTime + c.duration))
-          : currentTime;
+          : playhead;
 
         const newClip = createClipFromAsset(asset, targetTrack.id, startAt);
         setSelectedClipId(newClip.id);
@@ -962,7 +963,7 @@ export function App() {
       });
       showToast(`Adicionado: ${asset.name}`);
     },
-    [applyProjectChange, currentTime, showToast]
+    [applyProjectChange, showToast]
   );
 
   const handleDropAssetOnTrack = useCallback(
@@ -1489,12 +1490,37 @@ export function App() {
     setCurrentTime(0);
     playheadRef.current = 0;
     setSelectedClipId(null);
-    applyProjectChange((prev) => ({
-      ...prev,
-      projectName: 'Novo Projeto',
-      clips: [],
-      markers: [],
-    }));
+    applyProjectChange((prev) => {
+      // Cria um estado realmente limpo — zera timeline e cria composição fresca
+      const freshTracks: Track[] = [
+        { id: uid('track-v1'), name: 'V1 • Principal', type: 'video' },
+        { id: uid('track-t1'), name: 'T1 • Títulos', type: 'text' },
+      ];
+      return {
+        ...prev,
+        projectName: 'Novo Projeto',
+        aspectRatio: prev.aspectRatio,
+        fps: prev.fps,
+        backgroundColor: prev.backgroundColor,
+        transparentBg: prev.transparentBg,
+        tracks: freshTracks,
+        clips: [],
+        markers: [],
+        compositions: [
+          {
+            id: 'comp-main',
+            name: 'Composição Principal',
+            tracks: freshTracks,
+            clips: [],
+            markers: [],
+          },
+        ],
+        activeCompId: 'comp-main',
+        workArea: undefined,
+        customPresets: prev.customPresets,
+        assetRegistry: prev.assetRegistry,
+      };
+    });
     showToast('Projeto em branco criado — o anterior continua em Desfazer (Ctrl+Z) e no autosave');
   }, [applyProjectChange, showToast]);
 

@@ -91,6 +91,7 @@ export const MediaSidebar: React.FC<MediaSidebarProps> = ({
   isMobileDrawer = false,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const audioFileInputRef = useRef<HTMLInputElement>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [auditionId, setAuditionId] = useState<string | null>(null);
   const auditionAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -577,19 +578,22 @@ export const MediaSidebar: React.FC<MediaSidebarProps> = ({
                 Áudio & Sincronização de Batidas
               </h2>
               <button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => audioFileInputRef.current?.click()}
                 className="text-[11px] text-[#3b82f6] hover:underline cursor-pointer"
               >
                 + Importar
               </button>
               <input
-                ref={fileInputRef}
+                ref={audioFileInputRef}
                 type="file"
                 multiple
                 accept="audio/*"
                 className="hidden"
                 onChange={(e) => {
-                  if (e.target.files?.length) onUploadFiles(e.target.files);
+                  if (e.target.files?.length) {
+                    onUploadFiles(e.target.files);
+                    e.target.value = '';
+                  }
                 }}
               />
             </div>

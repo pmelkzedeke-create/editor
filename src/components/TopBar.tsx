@@ -236,6 +236,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                       className="hidden"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
+                        e.target.value = '';
                         if (file) onLoadProjectJson(file);
                         setMenuOpen(false);
                       }}

@@ -25,12 +25,27 @@ export function syncActiveComposition(project: ProjectState): ProjectState {
       activeCompId: 'comp-main',
     };
   }
-  const active = project.compositions.find((c) => c.id === project.activeCompId) || project.compositions[0];
+  // Propaga as alterações do topo (tracks/clips/markers) para a composição ativa
+  // Em vez de sobrescrever o topo com dados antigos da composição (bug que impedia novo projeto e adicionar clips)
+  const activeExists = project.compositions.some((c) => c.id === project.activeCompId);
+  if (!activeExists) {
+    // Fallback: se activeCompId inválido, restaura do primeiro mas mantém estrutura
+    const first = project.compositions[0];
+    return {
+      ...project,
+      tracks: first.tracks,
+      clips: first.clips,
+      markers: first.markers,
+    };
+  }
+  const updatedCompositions = project.compositions.map((c) =>
+    c.id === project.activeCompId
+      ? { ...c, tracks: project.tracks, clips: project.clips, markers: project.markers }
+      : c
+  );
   return {
     ...project,
-    tracks: active.tracks,
-    clips: active.clips,
-    markers: active.markers,
+    compositions: updatedCompositions,
   };
 }
 
@@ -113,7 +128,7 @@ export function precomposeClips(project: ProjectState, clipIds: string[]) {
 
   const remainingClips = project.clips.filter((c) => !clipIds.includes(c.id));
   const newPrecompClip = {
-    id: precompCompId,
+    id: precompClipId,
     trackId: project.tracks[0].id,
     type: 'precomp' as const,
     name: precompComposition.name,

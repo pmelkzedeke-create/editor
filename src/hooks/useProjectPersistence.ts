@@ -31,11 +31,44 @@ export function useProjectPersistence({
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         setSessionAvailable(true);
+        // Mostra banner de recuperação se o projeto atual for diferente do salvo
+        // (evita banner infinito em reloads após descarte)
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed.projectName === 'string') {
+          setCanRecoverAtBoot(true);
+        }
       }
     } catch {
       // ignore
     }
   }, []);
+
+  // Autosave debounced: salva a cada alteração após 1.2s de inatividade
+  useEffect(() => {
+    setSaveStatus('dirty');
+    const t = window.setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
+        setLastSavedAt(Date.now());
+        setSaveStatus('saved');
+        setSessionAvailable(true);
+      } catch {
+        setSaveStatus('error');
+      }
+    }, 1200);
+    return () => clearTimeout(t);
+  }, [project]);
+
+  // Antes de fechar a aba, tenta salvar síncrono
+  useEffect(() => {
+    const handler = () => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
+      } catch {}
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [project]);
 
   const saveNow = useCallback(async () => {
     setSaveStatus('saving');
